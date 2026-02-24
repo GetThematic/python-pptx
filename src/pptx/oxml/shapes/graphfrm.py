@@ -19,6 +19,7 @@ from pptx.oxml.xmlchemy import (
 )
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_CHARTEX,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_TABLE,
 )
@@ -145,6 +146,19 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         if chart is None:
             return None
         return chart.rId
+        
+    @property
+    def chartex_rId(self) -> str | None:
+        """The `r:id` attribute of the `cx:chart` great-grandchild element.
+        
+        |None| if not present.
+        """
+        if self.graphicData_uri != GRAPHIC_DATA_URI_CHARTEX:
+            return None
+        chartex_elem = self.graphic.graphicData.xpath(".//cx:chart", namespaces={"cx": "http://schemas.microsoft.com/office/drawing/2014/chartex"})
+        if not chartex_elem:
+            return None
+        return chartex_elem[0].get("{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id")
 
     def get_or_add_xfrm(self) -> CT_Transform2D:
         """Return the required `p:xfrm` child element.
@@ -186,6 +200,25 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         graphicData = graphicFrame.graphic.graphicData
         graphicData.uri = GRAPHIC_DATA_URI_CHART
         graphicData.append(CT_Chart.new_chart(rId))
+        return graphicFrame
+        
+    @classmethod
+    def new_chartex_graphicFrame(
+        cls, id_: int, name: str, rId: str, x: int, y: int, cx: int, cy: int
+    ) -> CT_GraphicalObjectFrame:
+        """Return a `p:graphicFrame` element tree populated with a chartex element."""
+        from pptx.oxml import parse_xml
+        
+        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(id_, name, x, y, cx, cy)
+        graphicData = graphicFrame.graphic.graphicData
+        graphicData.uri = GRAPHIC_DATA_URI_CHARTEX
+        
+        chart_elem = parse_xml(
+            f'<cx:chart xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" '
+            f'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+            f'r:id="{rId}"/>'
+        )
+        graphicData.append(chart_elem)
         return graphicFrame
 
     @classmethod

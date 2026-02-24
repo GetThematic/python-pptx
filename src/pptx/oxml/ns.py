@@ -9,6 +9,7 @@ _nsmap = {
     "c": "http://schemas.openxmlformats.org/drawingml/2006/chart",
     "cp": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
     "ct": "http://schemas.openxmlformats.org/package/2006/content-types",
+    "cx": "http://schemas.microsoft.com/office/drawing/2014/chartex",
     "dc": "http://purl.org/dc/elements/1.1/",
     "dcmitype": "http://purl.org/dc/dcmitype/",
     "dcterms": "http://purl.org/dc/terms/",
