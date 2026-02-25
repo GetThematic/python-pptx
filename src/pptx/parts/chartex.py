@@ -150,7 +150,7 @@ class ChartExWorkbook(object):
         # Add externalData element to chartData
         externalData = self._chartSpace.get_or_add_externalData()
         externalData.set(qn("r:id"), rId)
-        externalData.set(qn("cx:autoUpdate"), "0")
+        externalData.set("autoUpdate", "0")
 
 
 _CHART_STYLE_XML = (

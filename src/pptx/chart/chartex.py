@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from pptx.shared import ElementProxy
 from pptx.util import lazyproperty
+from pptx.oxml.ns import qn
 
 if TYPE_CHECKING:
     from pptx.oxml.chart.chartex import CT_ChartSpace, CT_Series, CT_Axis
@@ -184,9 +185,32 @@ class Series(ElementProxy):
     @property
     def values(self) -> list[float | None]:
         """The data values for this series."""
-        # This is a simplified implementation that doesn't handle real data retrieval
-        # In a real implementation, you would need to retrieve data from the Excel workbook
-        # based on the dataId and other information in the series
+        
+
+        data_id_elem = self._series.dataId
+        if data_id_elem is None:
+            return []
+        data_id = data_id_elem.val
+        # Navigate up from series to chartSpace, then find chartData
+        chartSpace = self._series.getparent()
+        while chartSpace is not None and chartSpace.tag != qn("cx:chartSpace"):
+            chartSpace = chartSpace.getparent()
+        if chartSpace is None:
+            return []
+        chartData = chartSpace.chartData
+        for data_elem in chartData.data:
+            if data_elem.id == data_id:
+                for numDim in data_elem.numDim:
+                    result: list[float | None] = []
+                    for lvl in numDim.lvl:
+                        pt_count = int(lvl.get("ptCount", "0"))
+                        values: list[float | None] = [None] * pt_count
+                        for pt in lvl:
+                            idx = int(pt.get("idx", "0"))
+                            if idx < pt_count and pt.text is not None:
+                                values[idx] = float(pt.text)
+                        result.extend(values)
+                    return result
         return []
 
 
