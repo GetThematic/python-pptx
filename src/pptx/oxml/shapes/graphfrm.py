@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, cast
 
 from pptx.oxml import parse_xml
 from pptx.oxml.chart.chart import CT_Chart
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.simpletypes import XsdBoolean, XsdString
 from pptx.oxml.table import CT_Table
@@ -155,10 +155,10 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         """
         if self.graphicData_uri != GRAPHIC_DATA_URI_CHARTEX:
             return None
-        chartex_elem = self.graphic.graphicData.xpath(".//cx:chart", namespaces={"cx": "http://schemas.microsoft.com/office/drawing/2014/chartex"})
+        chartex_elem = self.graphic.graphicData.findall(qn("cx:chart"))
         if not chartex_elem:
             return None
-        return chartex_elem[0].get("{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id")
+        return chartex_elem[0].get(qn("r:id"))
 
     def get_or_add_xfrm(self) -> CT_Transform2D:
         """Return the required `p:xfrm` child element.
@@ -207,17 +207,11 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         cls, id_: int, name: str, rId: str, x: int, y: int, cx: int, cy: int
     ) -> CT_GraphicalObjectFrame:
         """Return a `p:graphicFrame` element tree populated with a chartex element."""
-        from pptx.oxml import parse_xml
-        
         graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(id_, name, x, y, cx, cy)
         graphicData = graphicFrame.graphic.graphicData
         graphicData.uri = GRAPHIC_DATA_URI_CHARTEX
-        
-        chart_elem = parse_xml(
-            f'<cx:chart xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" '
-            f'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
-            f'r:id="{rId}"/>'
-        )
+
+        chart_elem = parse_xml(f'<cx:chart {nsdecls("cx", "r")} r:id="{rId}"/>')
         graphicData.append(chart_elem)
         return graphicFrame
 

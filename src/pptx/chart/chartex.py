@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pptx.shared import ElementProxy
+from pptx.shared import ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
 from pptx.oxml.ns import qn
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from pptx.parts.chartex import ChartExPart
 
 
-class ChartEx(ElementProxy):
+class ChartEx(PartElementProxy):
     """Chart extension object.
     
     Corresponds to the ``<cx:chartSpace>`` element that is the root of a chart extension part.
@@ -22,7 +22,7 @@ class ChartEx(ElementProxy):
     _chartspace: CT_ChartSpace
     
     def __init__(self, chartSpace: CT_ChartSpace, chart_part: ChartExPart):
-        super(ChartEx, self).__init__(chartSpace, chart_part)
+        super().__init__(chartSpace, chart_part)
         self._chartspace = chartSpace
     
     @property
@@ -97,7 +97,7 @@ class ChartEx(ElementProxy):
         return self._chartspace.chart
 
 
-class Legend(ElementProxy):
+class Legend(ParentedElementProxy):
     """Chart legend object.
     
     Corresponds to the ``<cx:legend>`` element in chartex.
@@ -144,7 +144,7 @@ class Legend(ElementProxy):
         self._element.set("overlay", "0" if value else "1")
 
 
-class Series(ElementProxy):
+class Series(ParentedElementProxy):
     """Chart series object.
     
     Corresponds to the ``<cx:series>`` element in chartex.
@@ -153,7 +153,7 @@ class Series(ElementProxy):
     _series: CT_Series
     
     def __init__(self, series: CT_Series, parent: ChartEx):
-        super(Series, self).__init__(series, parent)
+        super().__init__(series, parent)
         self._series = series
     
     @property
@@ -214,7 +214,7 @@ class Series(ElementProxy):
         return []
 
 
-class Axis(ElementProxy):
+class Axis(ParentedElementProxy):
     """Chart axis object.
     
     Corresponds to the ``<cx:axis>`` element in chartex.
@@ -223,7 +223,7 @@ class Axis(ElementProxy):
     _axis: CT_Axis
     
     def __init__(self, axis: CT_Axis, parent: ChartEx):
-        super(Axis, self).__init__(axis, parent)
+        super().__init__(axis, parent)
         self._axis = axis
     
     @property
