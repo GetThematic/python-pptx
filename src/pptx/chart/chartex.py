@@ -67,19 +67,33 @@ class ChartEx(PartElementProxy):
         
     @property
     def has_legend(self) -> bool:
-        """True if this chart has a legend, False otherwise."""
+        """Read/write boolean, |True| if the chart has a legend.
+
+        Assigning |True| causes a legend to be added if not already present.
+        Assigning |False| removes any existing legend definition.
+        """
         return self._chart.legend is not None
-    
-    @lazyproperty
-    def legend(self) -> Legend:
-        """
-        The |Legend| instance for this chart, providing properties and methods on the
-        chart legend.
-        """
-        legend = self._chart.get_or_add_legend()
-        return Legend(legend, self)
+
+    @has_legend.setter
+    def has_legend(self, value: bool):
+        if bool(value) is False:
+            self._chart._remove_legend()
+        else:
+            if self._chart.legend is None:
+                self._chart._add_legend()
     
     @property
+    def legend(self) -> Legend | None:
+        """
+        A |Legend| object providing access to the properties of the legend
+        for this chart, or |None| if no legend is defined.
+        """
+        legend_elm = self._chart.legend
+        if legend_elm is None:
+            return None
+        return Legend(legend_elm, self)
+    
+    @lazyproperty
     def series(self) -> list[Series]:
         """A sequence of |Series| objects representing the series in this chart."""
         series_elements = self._chart.plotArea.plotAreaRegion.findall(".//cx:series", namespaces={"cx": "http://schemas.microsoft.com/office/drawing/2014/chartex"})
