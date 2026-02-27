@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from pptx.oxml.ns import qn
-from pptx.oxml.simpletypes import XsdString
+from pptx.oxml.simpletypes import XsdBoolean, XsdInt, XsdString
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
@@ -113,8 +113,8 @@ class CT_ExternalData(BaseOxmlElement):
     ``<cx:externalData>`` element, refers to external Excel data.
     """
 
-    autoUpdate: bool = OptionalAttribute("autoUpdate", bool)  # pyright: ignore
-    rId: str = RequiredAttribute("r:id", str)  # pyright: ignore
+    autoUpdate: bool = OptionalAttribute("autoUpdate", XsdBoolean)  # pyright: ignore
+    rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore
 
 
 class CT_Chart(BaseOxmlElement):
@@ -275,10 +275,10 @@ class CT_Series(BaseOxmlElement):
     extLst = ZeroOrOne("cx:extLst")  # pyright: ignore
 
     layoutId: XsdString = RequiredAttribute("layoutId", XsdString)  # pyright: ignore
-    hidden: bool = OptionalAttribute("hidden", bool, False)  # pyright: ignore
-    ownerIdx: int = OptionalAttribute("ownerIdx", int)  # pyright: ignore
+    hidden: bool = OptionalAttribute("hidden", XsdBoolean, False)  # pyright: ignore
+    ownerIdx: int = OptionalAttribute("ownerIdx", XsdInt)  # pyright: ignore
     uniqueId: str = OptionalAttribute("uniqueId", XsdString)  # pyright: ignore
-    formatIdx: int = OptionalAttribute("formatIdx", int)  # pyright: ignore
+    formatIdx: int = OptionalAttribute("formatIdx", XsdInt)  # pyright: ignore
 
 
 class CT_Axis(BaseOxmlElement):
@@ -300,8 +300,8 @@ class CT_Axis(BaseOxmlElement):
     txPr = ZeroOrOne("cx:txPr")  # pyright: ignore
     extLst = ZeroOrOne("cx:extLst")  # pyright: ignore
 
-    id: int = RequiredAttribute("id", int)  # pyright: ignore
-    hidden: bool = OptionalAttribute("hidden", bool, False)  # pyright: ignore
+    id: int = RequiredAttribute("id", XsdInt)  # pyright: ignore
+    hidden: bool = OptionalAttribute("hidden", XsdBoolean, False)  # pyright: ignore
 
     @classmethod
     def new_cat_axis(cls, axis_id: int):
@@ -374,7 +374,7 @@ class CT_DataId(BaseOxmlElement):
     ``<cx:dataId>`` element, identifies the data for a series.
     """
 
-    val: int = RequiredAttribute("val", int)  # pyright: ignore
+    val: int = RequiredAttribute("val", XsdInt)  # pyright: ignore
 
 
 class CT_Data(BaseOxmlElement):
@@ -386,7 +386,7 @@ class CT_Data(BaseOxmlElement):
     numDim = ZeroOrMore("cx:numDim")  # pyright: ignore
     extLst = ZeroOrOne("cx:extLst")  # pyright: ignore
 
-    id: int = RequiredAttribute("id", int)  # pyright: ignore
+    id: int = RequiredAttribute("id", XsdInt)  # pyright: ignore
 
     def add_string_dimension(self, dim_type: str, formula: str, values: list[str]):
         """Add a string dimension with the given type, formula, and values."""
@@ -473,7 +473,7 @@ class CT_StringLevel(BaseOxmlElement):
 
     pt = ZeroOrMore("cx:pt")  # pyright: ignore
 
-    ptCount: int = RequiredAttribute("ptCount", int)  # pyright: ignore
+    ptCount: int = RequiredAttribute("ptCount", XsdInt)  # pyright: ignore
     name: XsdString = OptionalAttribute("name", XsdString)  # pyright: ignore
     formatCode: XsdString = OptionalAttribute("formatCode", XsdString)  # pyright: ignore
 
@@ -483,7 +483,7 @@ class CT_StringValue(BaseOxmlElement):
     ``<cx:pt>`` element for string values.
     """
 
-    idx: int = RequiredAttribute("idx", int)  # pyright: ignore
+    idx: int = RequiredAttribute("idx", XsdInt)  # pyright: ignore
 
 
 class CT_CategoryAxisScaling(BaseOxmlElement):
@@ -527,7 +527,7 @@ class CT_SubtotalIndex(BaseOxmlElement):
     ``<cx:idx>`` element in subtotals.
     """
 
-    val: int = RequiredAttribute("val", int)  # pyright: ignore
+    val: int = RequiredAttribute("val", XsdInt)  # pyright: ignore
 
 
 class CT_TickLabels(BaseOxmlElement):
@@ -550,7 +550,7 @@ class CT_ChartTitle(BaseOxmlElement):
 
     pos: XsdString = OptionalAttribute("pos", XsdString, "t")  # pyright: ignore
     align: XsdString = OptionalAttribute("align", XsdString, "ctr")  # pyright: ignore
-    overlay: bool = OptionalAttribute("overlay", bool, False)  # pyright: ignore
+    overlay: bool = OptionalAttribute("overlay", XsdBoolean, False)  # pyright: ignore
 
 
 class CT_Legend(BaseOxmlElement):
@@ -564,7 +564,7 @@ class CT_Legend(BaseOxmlElement):
 
     pos: XsdString = OptionalAttribute("pos", XsdString, "r")  # pyright: ignore
     align: XsdString = OptionalAttribute("align", XsdString, "ctr")  # pyright: ignore
-    overlay: bool = OptionalAttribute("overlay", bool, False)  # pyright: ignore
+    overlay: bool = OptionalAttribute("overlay", XsdBoolean, False)  # pyright: ignore
 
 
 class CT_Gridlines(BaseOxmlElement):
@@ -581,6 +581,6 @@ class CT_DataLabelVisibilities(BaseOxmlElement):
     ``<cx:visibility>`` element for data label visibility.
     """
 
-    seriesName: bool = OptionalAttribute("seriesName", bool)  # pyright: ignore
-    categoryName: bool = OptionalAttribute("categoryName", bool)  # pyright: ignore
-    value: bool = OptionalAttribute("value", bool)  # pyright: ignore
+    seriesName: bool = OptionalAttribute("seriesName", XsdBoolean)  # pyright: ignore
+    categoryName: bool = OptionalAttribute("categoryName", XsdBoolean)  # pyright: ignore
+    value: bool = OptionalAttribute("value", XsdBoolean)  # pyright: ignore
