@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pptx.oxml.ns import qn
+from pptx.oxml.xmlchemy import OxmlElement
 from pptx.shared import ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
-from pptx.oxml.ns import qn
 
 if TYPE_CHECKING:
+    from pptx.chart.data import WaterfallChartData
     from pptx.oxml.chart.chartex import CT_ChartSpace, CT_Series, CT_Axis
     from pptx.parts.chartex import ChartExPart
 
@@ -105,6 +107,59 @@ class ChartEx(PartElementProxy):
         axis_elements = self._chart.plotArea.findall(".//cx:axis", namespaces={"cx": "http://schemas.microsoft.com/office/drawing/2014/chartex"})
         return [Axis(axis, self) for axis in axis_elements]
     
+    def replace_data(self, chart_data: WaterfallChartData):
+        """Replace the data for this chart with *chart_data*.
+
+        *chart_data* is a |WaterfallChartData| instance populated with the categories,
+        series values, and subtotal indices for the new chart data.
+        """
+        chartData = self._chartspace.chartData
+
+        # --- rebuild the <cx:data id="0"> element ---
+        for old_data in list(chartData.data_lst):
+            chartData.remove(old_data)
+        new_data = OxmlElement("cx:data")
+        new_data.set("id", "0")
+        chartData.append(new_data)
+        new_data.add_string_dimension(
+            "cat", chart_data.categories_ref, chart_data.categories
+        )
+        new_data.add_numeric_dimension(
+            "val",
+            chart_data.values_ref,
+            chart_data.series_values,
+            chart_data.number_format,
+        )
+
+        # --- update series name ---
+        series_elems = self._chart.plotArea.plotAreaRegion.series_lst
+        if series_elems:
+            series_elem = series_elems[0]
+            tx = series_elem.tx
+            if tx is not None:
+                txData = tx.txData
+                if txData is not None:
+                    f_elem = txData.f
+                    if f_elem is not None:
+                        f_elem.text = chart_data.series_name_ref
+                    v_elem = txData.v
+                    if v_elem is not None:
+                        v_elem.text = chart_data.series_name
+
+            # --- replace subtotals on layoutPr ---
+            series_elem._remove_layoutPr()
+            if chart_data.subtotals:
+                layoutPr = series_elem._add_layoutPr()
+                subtotals_elem = OxmlElement("cx:subtotals")
+                layoutPr._insert_subtotals(subtotals_elem)
+                for idx in chart_data.subtotals:
+                    idx_elem = OxmlElement("cx:idx")
+                    idx_elem.set("val", str(idx))
+                    subtotals_elem.append(idx_elem)
+
+        # --- update the embedded Excel workbook ---
+        self.part.chartex_workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
+
     @property
     def _chart(self):
         """The ``<cx:chart>`` element in this chart."""
@@ -212,11 +267,11 @@ class Series(ParentedElementProxy):
         if chartSpace is None:
             return []
         chartData = chartSpace.chartData
-        for data_elem in chartData.data:
+        for data_elem in chartData.data_lst:
             if data_elem.id == data_id:
-                for numDim in data_elem.numDim:
+                for numDim in data_elem.numDim_lst:
                     result: list[float | None] = []
-                    for lvl in numDim.lvl:
+                    for lvl in numDim.lvl_lst:
                         pt_count = int(lvl.get("ptCount", "0"))
                         values: list[float | None] = [None] * pt_count
                         for pt in lvl:
