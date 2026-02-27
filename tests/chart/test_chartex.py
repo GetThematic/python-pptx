@@ -129,3 +129,44 @@ class DescribeChartEx:
         assert len(series_list2) == 1
         assert series_list2[0].name == "Profit"
         assert series_list2[0].values == [200.0, -50.0, 100.0, 75.0, 325.0]
+
+    def it_removes_stale_dataPt_on_replace_data(self):
+        """replace_data with fewer categories removes out-of-range dataPt elements."""
+        from pptx import Presentation
+        from pptx.oxml.ns import qn
+        from pptx.oxml.xmlchemy import OxmlElement
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+        chart_data = WaterfallChartData()
+        chart_data.categories = ["A", "B", "C", "D", "E", "F", "G", "H"]
+        chart_data.add_series("S", [1, 2, 3, 4, 5, 6, 7, 8], subtotals=[7])
+
+        graphic_frame = slide.shapes.add_chartex(
+            chart_data, Inches(1), Inches(1), Inches(6), Inches(4),
+        )
+        chartex = graphic_frame.chartex
+
+        # --- manually add dataPt elements to the series (simulating template) ---
+        series_el = chartex._element.chart.plotArea.plotAreaRegion.series_lst[0]
+        for i in range(8):
+            dataPt = OxmlElement("cx:dataPt")
+            dataPt.set("idx", str(i))
+            series_el.append(dataPt)
+
+        assert len(series_el.dataPt_lst) == 8
+
+        # --- replace with fewer categories ---
+        new_data = WaterfallChartData()
+        new_data.categories = ["X", "Y", "Z", "Total"]
+        new_data.add_series("S2", [10, 20, 30, 60], subtotals=[3])
+
+        chartex.replace_data(new_data)
+
+        remaining = series_el.dataPt_lst
+        remaining_indices = [int(dp.get("idx")) for dp in remaining]
+        # only indices 0-3 should remain (4 categories)
+        assert all(idx < 4 for idx in remaining_indices)
+        # indices 4-7 should have been removed
+        assert not any(idx >= 4 for idx in remaining_indices)
