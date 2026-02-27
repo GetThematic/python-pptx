@@ -959,6 +959,11 @@ class WaterfallChartData:
         worksheet.write(0, 1, self._series_name or "Series 1")
 
         # Data rows
+        if len(self._categories) != len(self._series_values):
+            raise ValueError(
+                f"categories length ({len(self._categories)}) must equal"
+                f" series values length ({len(self._series_values)})"
+            )
         for idx, (cat, val) in enumerate(
             zip(self._categories, self._series_values)
         ):

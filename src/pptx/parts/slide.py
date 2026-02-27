@@ -177,9 +177,7 @@ class SlidePart(BaseSlidePart):
         """
         return self.relate_to(ChartPart.new(chart_type, chart_data, self._package), RT.CHART)
 
-    def add_chartex_part(
-        self, chart_data: WaterfallChartData, subtotal_indices: list[int] | None = None
-    ) -> str:
+    def add_chartex_part(self, chart_data: WaterfallChartData) -> str:
         """Return str rId of new |ChartExPart| containing a waterfall chart.
 
         The chart depicts `chart_data` and is related to the slide contained in this
@@ -191,7 +189,7 @@ class SlidePart(BaseSlidePart):
         plotAreaRegion.add_waterfall_series(
             chart_data.series_name or "Series 1",
             data_id=0,
-            subtotal_indices=subtotal_indices,
+            subtotal_indices=chart_data.subtotals or None,
         )
         # populate chart data dimensions
         data_elem = chartex_part._element.chartData.data_lst[0]

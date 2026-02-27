@@ -265,7 +265,6 @@ class _BaseGroupShapes(_BaseShapes):
         y: Length,
         cx: Length,
         cy: Length,
-        subtotal_indices: list[int] | None = None,
     ) -> GraphicFrame:
         """Add a new ChartEx (e.g. waterfall) chart to the slide.
 
@@ -273,7 +272,7 @@ class _BaseGroupShapes(_BaseShapes):
         `chart_data`. Returns the |GraphicFrame| shape containing the chart. Access the
         |ChartEx| object via the :attr:`chartex` property of the returned graphic frame.
         """
-        rId = self.part.add_chartex_part(chart_data, subtotal_indices)
+        rId = self.part.add_chartex_part(chart_data)
         graphicFrame = self._add_chartex_graphicFrame(rId, x, y, cx, cy)
         self._recalculate_extents()
         return cast("GraphicFrame", self._shape_factory(graphicFrame))

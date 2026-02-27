@@ -7,6 +7,8 @@ from __future__ import annotations
 import zipfile
 from io import BytesIO
 
+import pytest
+
 from pptx.chart.data import WaterfallChartData
 from pptx.util import Inches
 
@@ -51,9 +53,41 @@ class DescribeWaterfallChartData:
         assert "xl/worksheets/sheet1.xml" in zf.namelist()
         zf.close()
 
+    def it_raises_on_mismatched_categories_and_values(self):
+        chart_data = WaterfallChartData()
+        chart_data.categories = ["Q1", "Q2", "Q3"]
+        chart_data.add_series("Revenue", [100, 200])
+
+        with pytest.raises(ValueError, match="categories length.*must equal.*series values"):
+            chart_data.xlsx_blob
+
 
 class DescribeChartEx:
     """Unit-test suite for `pptx.chart.chartex.ChartEx`."""
+
+    def it_applies_subtotals_from_chart_data(self):
+        """Subtotals set via chart_data.add_series flow through to chart XML."""
+        from pptx import Presentation
+        from pptx.oxml.ns import qn
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+        chart_data = WaterfallChartData()
+        chart_data.categories = ["Q1", "Q2", "Q3", "Total"]
+        chart_data.add_series("Revenue", [100, 50, -30, 120], subtotals=[3])
+
+        graphic_frame = slide.shapes.add_chartex(
+            chart_data, Inches(1), Inches(1), Inches(6), Inches(4),
+        )
+
+        chartex = graphic_frame.chartex
+        # verify the subtotal idx=3 appears in the XML
+        series_el = chartex._element.chart.plotArea.plotAreaRegion.findall(
+            qn("cx:series")
+        )[0]
+        subtotals = series_el.findall(f".//{qn('cx:subtotals')}/{qn('cx:idx')}")
+        assert [int(el.get("val")) for el in subtotals] == [3]
 
     def it_can_replace_data(self):
         """End-to-end: build via add_chartex → replace_data → verify."""
@@ -72,7 +106,6 @@ class DescribeChartEx:
             Inches(1),
             Inches(6),
             Inches(4),
-            subtotal_indices=[3],
         )
 
         chartex = graphic_frame.chartex
