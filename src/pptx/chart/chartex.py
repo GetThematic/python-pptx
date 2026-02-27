@@ -157,6 +157,13 @@ class ChartEx(PartElementProxy):
                     idx_elem.set("val", str(idx))
                     subtotals_elem.append(idx_elem)
 
+            # --- remove dataPt elements that reference out-of-range indices ---
+            num_points = len(chart_data.categories)
+            for dataPt in list(series_elem.dataPt_lst):
+                idx = dataPt.get("idx")
+                if idx is not None and int(idx) >= num_points:
+                    series_elem.remove(dataPt)
+
         # --- update the embedded Excel workbook ---
         self.part.chartex_workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
 

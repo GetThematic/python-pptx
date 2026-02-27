@@ -150,6 +150,11 @@ class ChartExWorkbook(object):
         # Add externalData element to chartData
         externalData = self._chartSpace.get_or_add_externalData()
         externalData.set(qn("r:id"), rId)
+        # Remove any namespaced autoUpdate to avoid duplicate attributes
+        cx_ns = "http://schemas.microsoft.com/office/drawing/2014/chartex"
+        namespaced_key = f"{{{cx_ns}}}autoUpdate"
+        if namespaced_key in externalData.attrib:
+            del externalData.attrib[namespaced_key]
         externalData.set("autoUpdate", "0")
 
 
