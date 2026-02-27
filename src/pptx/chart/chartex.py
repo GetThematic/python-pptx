@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pptx.oxml import OxmlElement
 from pptx.oxml.ns import qn
+from pptx.oxml.xmlchemy import OxmlElement
 from pptx.shared import ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
 
@@ -116,7 +116,7 @@ class ChartEx(PartElementProxy):
         chartData = self._chartspace.chartData
 
         # --- rebuild the <cx:data id="0"> element ---
-        for old_data in list(chartData.data):
+        for old_data in list(chartData.data_lst):
             chartData.remove(old_data)
         new_data = OxmlElement("cx:data")
         new_data.set("id", "0")
@@ -132,7 +132,7 @@ class ChartEx(PartElementProxy):
         )
 
         # --- update series name ---
-        series_elems = self._chart.plotArea.plotAreaRegion.series
+        series_elems = self._chart.plotArea.plotAreaRegion.series_lst
         if series_elems:
             series_elem = series_elems[0]
             tx = series_elem.tx
@@ -267,11 +267,11 @@ class Series(ParentedElementProxy):
         if chartSpace is None:
             return []
         chartData = chartSpace.chartData
-        for data_elem in chartData.data:
+        for data_elem in chartData.data_lst:
             if data_elem.id == data_id:
-                for numDim in data_elem.numDim:
+                for numDim in data_elem.numDim_lst:
                     result: list[float | None] = []
-                    for lvl in numDim.lvl:
+                    for lvl in numDim.lvl_lst:
                         pt_count = int(lvl.get("ptCount", "0"))
                         values: list[float | None] = [None] * pt_count
                         for pt in lvl:
